@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars
+# Your own card and Cloudflare config stay out of the repository.
+card.json
+wrangler.jsonc
+out/
+.DS_Store
+dist/

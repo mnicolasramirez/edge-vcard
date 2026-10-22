@@ -1,0 +1,839 @@
+/* Shared base (card page and QR view). Colours, fonts and background images come from
+   theme.css, generated from the card's "theme"; everything else is derived from them here. */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --brand-hi: color-mix(in srgb, var(--brand), #fff 9%);
+  --brand-lo: color-mix(in srgb, var(--brand), #000 25%);
+  --on-brand: #fff;
+  --on-brand-soft: color-mix(in srgb, #fff 88%, var(--brand));
+  --grey: #5f6670;
+  --line: #d6d9dc;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Card page: the business card as an object that flips to its QR, actions low in the thumb
+   zone. theme.js adds html.me-light for the light theme. Everything is prefixed me- so the QR
+   view is untouched. */
+:root {
+  --me-head: var(--head-font), var(--font);
+  --me-body: var(--body-font), var(--font);
+  --me-page: var(--dark);
+  --me-page-img: var(--bg-dark) center top / auto 100vh no-repeat;
+  --me-ink: #fff;
+  --me-muted: color-mix(in srgb, #fff 64%, var(--brand));
+  --me-tile: rgba(255, 255, 255, 0.08);
+  --me-tile-line: rgba(255, 255, 255, 0.14);
+  --me-tile-on: rgba(255, 255, 255, 0.16);
+  --me-save: #fff;
+  --me-save-ink: var(--brand);
+  --me-tool: rgba(255, 255, 255, 0.1);
+  --me-tool-line: rgba(255, 255, 255, 0.22);
+  --me-end: var(--me-muted);
+  --me-card-shadow: 0 20px 44px rgba(0, 0, 0, 0.45);
+  --me-lb: color-mix(in srgb, var(--brand-lo) 88%, transparent);
+  --me-lb-ink: #fff;
+  --me-lb-muted: color-mix(in srgb, #fff 80%, var(--brand));
+}
+
+html.me-light {
+  --me-page: var(--light);
+  --me-page-img: var(--bg-light) center bottom / 200% auto no-repeat;
+  --me-ink: var(--brand);
+  --me-muted: var(--grey);
+  --me-tile: #fff;
+  --me-tile-line: #c2c0c0;
+  --me-tile-on: color-mix(in srgb, var(--brand) 7%, #fff);
+  --me-save: var(--brand);
+  --me-save-ink: #fff;
+  --me-tool: #fff;
+  --me-tool-line: #c2c0c0;
+  --me-end: #9aa3aa;
+  --me-card-shadow: 0 16px 34px color-mix(in srgb, var(--brand) 28%, transparent);
+  --me-lb: color-mix(in srgb, var(--light) 92%, transparent);
+  --me-lb-ink: var(--brand);
+  --me-lb-muted: var(--grey);
+}
+
+html:has(body.me-page) { background: var(--me-page); color-scheme: dark; }
+html.me-light:has(body.me-page) { color-scheme: light; }
+
+.me-page {
+  background: var(--me-page) var(--me-page-img);
+  color: var(--me-ink);
+  font-family: var(--me-body);
+}
+
+.me-page .ic { display: block; flex: none; width: 22px; height: 22px; }
+.me-page a, .me-page button { -webkit-tap-highlight-color: transparent; }
+
+/* Full-height column. Sizes grow with the screen height, and what is left over is split
+   between the top, the gap above the actions and the gap above the footer, so tall phones
+   get bigger targets and air in three places instead of one empty band. */
+.me {
+  --gap: clamp(8px, 1.35dvh, 13px);
+  max-width: 480px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: calc(8px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom));
+}
+
+.me-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 46px; }
+
+.me-url {
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--me-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.me-tools { display: flex; flex: none; gap: 8px; }
+
+@media (max-width: 359px) { .me-url { letter-spacing: 0.06em; font-size: 10.5px; } }
+
+.me-tool {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--me-tool-line);
+  background: var(--me-tool);
+  color: var(--me-ink);
+  cursor: pointer;
+}
+
+.me-tool .ic { width: 19px; height: 19px; }
+
+/* The theme button shows the mode it switches to. */
+.me-tool .moon, .me-light .me-tool .sun { display: none; }
+.me-light .me-tool .moon { display: block; }
+
+/* The card: 3.5 x 2 in, front with logo, photo, name and title; QR on the back */
+.me-stage {
+  margin-top: max(clamp(8px, 1.6dvh, 18px), calc((100dvh - 790px) / 3));
+  perspective: 1200px;
+}
+
+.me-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3.5 / 2;
+  transform: rotateX(3deg) rotateY(-6deg);
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  cursor: pointer;
+}
+
+.me-card.flipped { transform: rotateY(180deg); }
+
+/* Hidden faces still catch taps in some browsers: only the visible face is clickable. */
+.me-card:not(.flipped) .me-back, .me-card.flipped .me-front { pointer-events: none; }
+
+.me-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-shadow: var(--me-card-shadow);
+}
+
+.me-front {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6.5% 7%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, var(--brand-hi), var(--brand-lo));
+  color: var(--on-brand);
+}
+
+.me-top { display: flex; align-items: flex-start; justify-content: space-between; }
+
+.me-logo { width: 30%; height: auto; }
+.me-logo.logo-text, .qrv-logo.logo-text { font-family: var(--me-head); font-weight: 800; line-height: 1.1; }
+.me-logo.logo-text { font-size: clamp(13px, 4.2vw, 18px); }
+
+.me-photo {
+  width: 23%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--brand-lo);
+  cursor: zoom-in;
+  transition: transform 0.15s ease;
+}
+
+.me-photo:active { transform: scale(0.95); }
+.me-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.me-rule { display: block; width: 34px; height: 3px; margin-bottom: 8px; border-radius: 2px; background: var(--accent); }
+
+.me-front h1 {
+  margin: 0;
+  font-family: var(--me-head);
+  font-weight: 800;
+  font-size: clamp(21px, 7vw, 30px);
+  line-height: 1.05;
+}
+
+.me-title { margin: 5px 0 0; font-size: clamp(11.5px, 3.5vw, 14px); color: var(--on-brand-soft); }
+
+.me-back {
+  display: flex;
+  align-items: center;
+  gap: 6%;
+  padding: 6% 7%;
+  border: 1px solid var(--line);
+  background: var(--light) var(--bg-light) center bottom / cover no-repeat;
+  color: var(--brand);
+  transform: rotateY(180deg);
+}
+
+.me-qr { width: 44%; padding: 4%; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.me-qr img { display: block; width: 100%; height: auto; }
+
+.me-back p {
+  margin: 0;
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.me-back small { display: block; margin-top: 8px; font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--grey); }
+
+.me-flip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: clamp(6px, 1.2dvh, 12px) auto 0;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--me-muted);
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.me-flip .ic { width: 16px; height: 16px; }
+
+/* Actions, low on the screen where the thumb is */
+.me-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  margin-top: auto;
+  padding-top: clamp(12px, 2.4dvh, 28px);
+}
+
+.me-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: clamp(52px, 7.2dvh, 64px);
+  border-radius: 999px;
+  background: var(--me-save);
+  color: var(--me-save-ink);
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: clamp(16px, 2.1dvh, 18px);
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transition: transform 0.12s ease;
+}
+
+.me-save:active { transform: scale(0.98); }
+
+.me-inapp {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--me-tile-line);
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--me-muted);
+}
+
+.me-inapp strong { color: var(--me-ink); }
+
+.me-dock, .me-rows { margin: 0; padding: 0; list-style: none; }
+
+.me-dock { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
+
+.me-dock a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: clamp(70px, 10.5dvh, 100px);
+  border: 1px solid var(--me-tile-line);
+  border-radius: 16px;
+  background: var(--me-tile);
+  color: var(--me-ink);
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.me-dock .ic { width: clamp(22px, 3dvh, 27px); height: clamp(22px, 3dvh, 27px); }
+
+.me-rows { display: grid; gap: var(--gap); }
+
+.me-rows a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: clamp(52px, 7.6dvh, 68px);
+  padding: 0 16px;
+  border: 1px solid var(--me-tile-line);
+  border-radius: 16px;
+  background: var(--me-tile);
+  color: var(--me-ink);
+  text-decoration: none;
+}
+
+.me-rows .lbl { flex: 1; min-width: 0; font-family: var(--me-head); font-weight: 700; font-size: clamp(15px, 1.95dvh, 17px); }
+.me-rows .end { color: var(--me-end); }
+.me-rows .end .ic { width: 17px; height: 17px; }
+.me-dock a:active, .me-rows a:active { background: var(--me-tile-on); }
+
+.me-foot {
+  margin: auto 0 0;
+  padding-top: clamp(14px, 2.6dvh, 26px);
+  text-align: center;
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--me-muted);
+}
+
+.me-foot b { font-weight: 800; color: var(--me-ink); }
+
+/* Photo, enlarged */
+.me-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px;
+  background: var(--me-lb);
+  color: var(--me-lb-ink);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  animation: me-fade 0.25s ease;
+  cursor: zoom-out;
+}
+
+.me-lb[hidden] { display: none; }
+
+.me-lb img {
+  width: min(80vw, 46dvh, 380px);
+  height: auto;
+  aspect-ratio: 1;
+  margin-bottom: 14px;
+  border-radius: 26px;
+  object-fit: cover;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  animation: me-pop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.1);
+}
+
+.me-lbn { margin: 0; font-family: var(--me-head); font-weight: 800; font-size: 24px; text-align: center; }
+.me-lbt { margin: 0; font-size: 14px; text-align: center; color: var(--me-lb-muted); }
+
+.me-lbx {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--me-tool-line);
+  border-radius: 50%;
+  background: var(--me-tool);
+  color: var(--me-lb-ink);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@keyframes me-pop { from { transform: scale(0.4); opacity: 0; } }
+@keyframes me-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .me-lb, .me-lb img { animation: none; } .me-card { transition: none; } }
+
+.me-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 50;
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand);
+  font-family: var(--me-head);
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.me-toast.show { opacity: 1; }
+
+/* Swap contacts: a quiet link under the rows opens a bottom sheet with a short form. Shown only
+   when the card has "swap": {"enabled": true}. */
+:root {
+  --me-sh-bg: var(--brand-hi);
+  --me-sh-ink: #fff;
+  --me-sh-muted: color-mix(in srgb, #fff 74%, var(--brand));
+  --me-sh-field: rgba(255, 255, 255, 0.08);
+  --me-sh-line: rgba(255, 255, 255, 0.2);
+  --me-sh-focus: #fff;
+  --me-sh-btn: #fff;
+  --me-sh-btn-ink: var(--brand);
+  --me-sh-dim: color-mix(in srgb, var(--brand-lo) 60%, rgba(0, 0, 0, 0.6));
+  --me-sh-err: #ffb59a;
+}
+
+html.me-light {
+  --me-sh-bg: #fff;
+  --me-sh-ink: var(--brand);
+  --me-sh-muted: var(--grey);
+  --me-sh-field: #f4f5f6;
+  --me-sh-line: #c2c0c0;
+  --me-sh-focus: var(--brand);
+  --me-sh-btn: var(--brand);
+  --me-sh-btn-ink: #fff;
+  --me-sh-dim: color-mix(in srgb, var(--brand) 35%, transparent);
+  --me-sh-err: #b4441a;
+}
+
+.me-swaplink {
+  align-self: center;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--me-muted);
+  font-family: var(--me-head);
+  font-weight: 700;
+  font-size: 13.5px;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.me-dim { position: fixed; inset: 0; z-index: 30; background: var(--me-sh-dim); animation: me-fade 0.25s ease; }
+.me-dim[hidden], .me-sheet[hidden], .me-sheet [hidden] { display: none; }
+html.me-sheet-open, html.me-sheet-open body { overflow: hidden; }
+
+/* --me-kb is the keyboard height (card.js, visualViewport), so the sheet sits above it. */
+.me-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--me-kb, 0px);
+  z-index: 31;
+  max-width: 480px;
+  max-height: calc(100dvh - 24px - var(--me-kb, 0px));
+  margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 20px calc(18px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0;
+  background: var(--me-sh-bg);
+  color: var(--me-sh-ink);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  animation: me-up 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: bottom 0.2s ease, max-height 0.2s ease;
+}
+
+@keyframes me-up { from { transform: translateY(100%); } }
+
+.me-grab { width: 38px; height: 5px; margin: 0 auto 14px; border-radius: 3px; background: var(--me-sh-line); }
+.me-sheet h2 { margin: 0; font-family: var(--me-head); font-weight: 800; font-size: 22px; }
+.me-sub { margin: 4px 0 14px; font-size: 14px; color: var(--me-sh-muted); }
+.me-frm { display: grid; gap: 10px; }
+.me-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.me-fld label { display: block; margin: 0 0 5px 2px; font-family: var(--me-head); font-weight: 700; font-size: 12px; letter-spacing: 0.02em; }
+.me-fld label i { font-style: normal; color: var(--me-sh-muted); }
+
+.me-fld input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--me-sh-line);
+  border-radius: 12px;
+  background: var(--me-sh-field);
+  color: var(--me-sh-ink);
+  font: 16px var(--me-body);
+  outline: none;
+}
+
+.me-fld input:focus {
+  border-color: var(--me-sh-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--me-sh-focus) 22%, transparent);
+}
+
+.me-fld input[aria-invalid="true"] { border-color: var(--me-sh-err); }
+.me-err { min-height: 0; margin: 2px 2px 0; font-size: 13px; color: var(--me-sh-err); }
+.me-err:empty { display: none; }
+.me-consent { margin: 12px 2px 0; font-size: 12px; line-height: 1.4; color: var(--me-sh-muted); }
+
+.me-send {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--me-sh-btn);
+  color: var(--me-sh-btn-ink);
+  font: 700 17px var(--me-head);
+  cursor: pointer;
+}
+
+.me-send:disabled { opacity: 0.6; cursor: progress; }
+
+.me-nothanks {
+  display: block;
+  margin: 6px auto 0;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  color: var(--me-sh-muted);
+  font: 700 14px var(--me-head);
+  cursor: pointer;
+}
+
+/* Bots fill every field; people never see this one. */
+.me-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.me-done { padding: 6px 0 4px; text-align: center; }
+.me-tick { display: grid; place-items: center; width: 54px; height: 54px; margin: 2px auto 12px; border-radius: 50%; background: color-mix(in srgb, var(--me-sh-ink) 10%, transparent); }
+.me-tick .ic { width: 28px; height: 28px; }
+.me-done .me-sub { margin-bottom: 16px; }
+.me-done .me-save { box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) { .me-sheet, .me-dim { animation: none; transition: none; } }
+
+/* Large screens: the card large on the left, still flipping; on the
+   right a "Scan to save" QR panel above the actions. Size and shape only, never the user agent:
+   a landscape phone (e.g. 932 x 430) fails the height test and keeps the phone column, and so
+   does an iPad in portrait. Phones never see a change: the hero wrapper drops out of the layout
+   and the scan panel is hidden (its QR is the card back's file, already loaded). */
+.me-hero { display: contents; }
+.me-scan { display: none; }
+
+@media (min-width: 900px) and (min-height: 600px) and (min-aspect-ratio: 5/4) {
+  .me {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 26vw, 480px);
+    grid-template-rows: auto 1fr auto auto 1fr auto;
+    grid-template-areas:
+      "bar bar"
+      ". ."
+      "hero scan"
+      "hero actions"
+      ". ."
+      "foot foot";
+    column-gap: clamp(44px, 5.5vw, 110px);
+    width: min(1560px, 100%);
+    max-width: none;
+    margin: 0 auto;
+    padding: 18px clamp(32px, 4vw, 64px) 22px;
+  }
+
+  .me-bar { grid-area: bar; height: 48px; }
+  .me-url { font-size: 12.5px; }
+
+  .me-hero {
+    grid-area: hero;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .me-stage { width: 100%; max-width: 860px; margin: 0; perspective: 1800px; }
+  .me-card { transform: rotateX(1.5deg) rotateY(-3deg); container-type: inline-size; }
+  .me-card.flipped { transform: rotateY(180deg); }
+  .me-flip { margin-top: clamp(14px, 2.4dvh, 26px); font-size: 13.5px; }
+
+  /* Card text scales with the card, not with the screen. */
+  .me-face { border-radius: 3.4cqi; }
+  .me-front h1 { font-size: 6.8cqi; }
+  .me-title { margin-top: 1.1cqi; font-size: 3.15cqi; }
+  .me-rule { width: 7.6cqi; height: 0.7cqi; margin-bottom: 1.8cqi; }
+  .me-back p { font-size: 2.8cqi; }
+  .me-back small { margin-top: 1.8cqi; font-size: 2.5cqi; }
+
+  /* Scan panel: QR on white, the same words as the card's back */
+  .me-scan {
+    grid-area: scan;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: clamp(10px, 1.6dvh, 16px);
+    padding: 16px;
+    border: 1px solid var(--me-tile-line);
+    border-radius: 18px;
+    background: var(--me-tile);
+  }
+
+  .me-scan-qr {
+    flex: none;
+    width: clamp(118px, 17dvh, 168px);
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .me-scan-qr img { display: block; width: 100%; height: auto; }
+
+  .me-scan-h {
+    margin: 0;
+    font-family: var(--me-head);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.45;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .me-scan-s { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--me-muted); }
+
+  .me-actions { grid-area: actions; --gap: clamp(8px, 1.2dvh, 12px); margin: 0; padding: 0; }
+  .me-save { min-height: clamp(50px, 6.6dvh, 58px); font-size: 17px; }
+  .me-dock a { min-height: clamp(68px, 9dvh, 84px); }
+  .me-dock .ic { width: 24px; height: 24px; }
+  .me-rows a { min-height: clamp(48px, 6.2dvh, 56px); }
+  .me-rows .lbl { font-size: 15.5px; }
+  .me-swaplink { margin-top: 0; }
+  .me-foot { grid-area: foot; margin: 0; padding-top: 14px; }
+
+  /* Swap contacts: a centred dialog instead of a bottom sheet. */
+  .me-sheet {
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: 440px;
+    max-height: calc(100dvh - 48px);
+    padding: 26px 28px 18px;
+    border-radius: 22px;
+    transform: translate(-50%, -50%);
+    animation: me-fade 0.2s ease;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  }
+
+  .me-grab { display: none; }
+  .me-sheet:focus { outline: none; } /* focus moves to the dialog on open; it needs no ring */
+}
+
+/* Monitors: a step up in size so the page does not float in empty space. */
+@media (min-width: 1700px) and (min-height: 1000px) and (min-aspect-ratio: 5/4) {
+  .me-save { min-height: 62px; font-size: 18px; }
+  .me-dock a { min-height: 92px; font-size: 13px; }
+  .me-rows a { min-height: 60px; }
+  .me-rows .lbl { font-size: 16.5px; }
+  .me-scan-qr { width: 180px; }
+  .me-scan-h, .me-scan-s { font-size: 14px; }
+}
+
+/* Mouse feedback on large screens only */
+@media (min-width: 900px) and (min-height: 600px) and (min-aspect-ratio: 5/4) and (hover: hover) {
+  .me-dock a, .me-rows a, .me-tool { transition: background-color 0.15s ease, border-color 0.15s ease; }
+  .me-dock a:hover, .me-rows a:hover, .me-tool:hover { background: var(--me-tile-on); }
+  .me-save:hover { transform: translateY(-1px); }
+  .me-photo:hover { transform: scale(1.04); }
+  .me-flip:hover { color: var(--me-ink); }
+}
+
+/* QR view: the card front and its QR on one phone screen */
+.qr-page {
+  background: var(--light);
+  color: var(--brand);
+}
+
+/* Base colour brand: iOS picks the status-bar text colour from what is behind it, and white
+   (the default) turned the clock black. No bounce, so overscroll never shows anything else. */
+html:has(body.qr-page) { background-color: var(--brand); overscroll-behavior: none; }
+.qr-page { overscroll-behavior: none; }
+
+.qrv {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: var(--app-h, 100dvh);
+  display: flex;
+  flex-direction: column;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.qrv-front {
+  flex: 0 0 auto;
+  min-height: 36dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  padding: calc(28px + env(safe-area-inset-top)) 28px 30px;
+  /* Solid brand colour at the top (behind the status bar in the Home Screen app), the optional
+     background image at the bottom. */
+  background:
+    linear-gradient(180deg, var(--brand) 0%, var(--brand) 38%, transparent 100%),
+    var(--brand) var(--bg-dark) center bottom / cover no-repeat;
+  color: var(--on-brand);
+}
+
+.qrv-logo { width: 132px; height: auto; display: block; }
+.qrv-logo.logo-text { width: auto; font-size: 20px; }
+
+.qrv-rule {
+  display: block;
+  width: 46px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin-bottom: 14px;
+}
+
+.qrv-name {
+  margin: 0;
+  font-family: var(--head-font), var(--font);
+  font-weight: 800;
+  font-size: clamp(34px, 10.5vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.005em;
+}
+
+.qrv-title {
+  margin: 10px 0 0;
+  font-family: var(--body-font), var(--font);
+  font-size: clamp(16px, 4.6vw, 20px);
+  color: var(--on-brand-soft);
+}
+
+.qrv-back {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 24px calc(18px + env(safe-area-inset-bottom));
+  background: var(--light) var(--bg-light) center bottom / 180% auto no-repeat;
+}
+
+.qrv-center {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.qrv-panel {
+  width: min(72vw, 40dvh, 360px);
+  padding: 7%;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--brand) 8%, transparent);
+}
+
+.qrv-panel img { display: block; width: 100%; height: auto; }
+
+.qrv-scan {
+  margin: 4px 0 0;
+  font-family: var(--head-font), var(--font);
+  font-weight: 700;
+  font-size: clamp(13px, 3.9vw, 16px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.qrv-link {
+  margin: 0;
+  padding: 6px 10px;
+  font-family: var(--head-font), var(--font);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--grey);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qrv-btn {
+  flex: none;
+  padding: 13px 26px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-family: var(--head-font), var(--font);
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--brand) 25%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qrv-btn:active { transform: scale(0.97); }
+
+/* Short phones (iPhone SE and similar): tighter front and QR so the button stays on screen. */
+@media (max-height: 720px) {
+  .qrv-front { min-height: 0; gap: 18px; padding-top: calc(18px + env(safe-area-inset-top)); padding-bottom: 20px; }
+  .qrv-logo { width: 112px; }
+  .qrv-name { font-size: 32px; }
+  .qrv-title { font-size: 15px; margin-top: 6px; }
+  .qrv-back { gap: 12px; padding-top: 16px; }
+  .qrv-center { gap: 10px; }
+  .qrv-panel { width: min(64vw, 36dvh, 300px); }
+  .qrv-btn { padding: 11px 22px; font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

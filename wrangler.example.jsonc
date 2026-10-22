@@ -1,0 +1,56 @@
+// Copy to wrangler.jsonc (npm run setup does it) and fill in the <PLACEHOLDERS>.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "edge-vcard",
+  // Optional: wrangler also reads CLOUDFLARE_ACCOUNT_ID, or asks after "wrangler login".
+  // "account_id": "<YOUR_ACCOUNT_ID>",
+  "main": "./src/index.js",
+  "compatibility_date": "2026-09-15",
+
+  // Quick start: the card at https://edge-vcard.<your-subdomain>.workers.dev/me
+  "workers_dev": true,
+  "preview_urls": false,
+
+  // Your own domain (the zone must be on Cloudflare). "/me*" is the pattern that also matches
+  // "/me?e=..." (an exact "/me" route misses query strings). It also catches /media, /meetings…:
+  // set PASS_THROUGH to "true" below if another site lives on the same hostname.
+  // "routes": [
+  //   { "pattern": "<YOUR_DOMAIN>/me*", "zone_name": "<YOUR_ZONE>" }
+  // ],
+
+  "vars": {
+    // Where the card lives: "/me" (default) or "" for the root of a hostname of its own.
+    "BASE_PATH": "/me",
+    // "true": requests on the route but outside BASE_PATH go to the site behind it.
+    "PASS_THROUGH": "false"
+  },
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+
+  // Measurement and the Swap contacts form. Create it with
+  //   npx wrangler d1 create edge-vcard
+  // paste the id here, then apply the tables:
+  //   npx wrangler d1 migrations apply edge-vcard --remote
+  // Leave this block out and the card still works, without counts or the form.
+  "d1_databases": [
+    {
+      "binding": "STATS",
+      "database_name": "edge-vcard",
+      "database_id": "<YOUR_D1_DATABASE_ID>",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Optional: card data in KV (key "card"), for an admin tool that edits the card without a
+  // deploy. Without it the bundled card.json is served.
+  // "kv_namespaces": [
+  //   { "binding": "CARD", "id": "<YOUR_KV_NAMESPACE_ID>" }
+  // ],
+
+  "observability": { "enabled": true }
+}

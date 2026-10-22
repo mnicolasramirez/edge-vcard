@@ -1,0 +1,124 @@
+{
+  "canonical": "https://card.example.com/me",
+  "lang": "en",
+  "name": "Riley Morgan",
+  "givenName": "Riley",
+  "familyName": "Morgan",
+  "title": "Head of Partnerships",
+  "company": "Example Co.",
+  "tagline": "Good things, made together.",
+  "images": {
+    "photo": "photo.jpg",
+    "vcardPhoto": "vcard-photo.jpg",
+    "appIcon": "app-icon-180.png"
+  },
+  "theme": {
+    "mode": "light",
+    "brand": "#1f2937",
+    "accent": "#2563eb",
+    "light": "#f3f4f6",
+    "dark": null,
+    "logo": "logo-white.svg",
+    "backgrounds": {
+      "dark": null,
+      "light": null
+    },
+    "fonts": {
+      "heading": {
+        "family": "Montserrat",
+        "files": {
+          "700": "fonts/Montserrat-Bold.woff2",
+          "800": "fonts/Montserrat-ExtraBold.woff2"
+        }
+      },
+      "body": {
+        "family": "Sora",
+        "files": {
+          "400": "fonts/Sora-Regular.woff2"
+        }
+      }
+    },
+    "qr": {
+      "dot": "#1f2937",
+      "finders": [
+        "#6b7280",
+        "#2563eb",
+        "#1f2937"
+      ]
+    }
+  },
+  "contact": {
+    "email": "riley@example.com",
+    "phone": "+12025550143",
+    "website": "https://example.com",
+    "linkedin": "https://example.com/linkedin",
+    "booking": "https://example.com/book"
+  },
+  "vcard": {
+    "includeWhatsapp": false
+  },
+  "swap": {
+    "enabled": true,
+    "subtitle": "Leave yours and I'll follow up.",
+    "consent": "Shared with {name} so they can follow up."
+  },
+  "qr": {
+    "appTitle": "My QR"
+  },
+  "links": [
+    {
+      "label": "Call",
+      "icon": "phone",
+      "href": "tel:+12025550143",
+      "group": "quick"
+    },
+    {
+      "label": "Text",
+      "icon": "message",
+      "href": "sms:+12025550143",
+      "group": "quick"
+    },
+    {
+      "label": "WhatsApp",
+      "icon": "whatsapp",
+      "href": "https://wa.me/12025550143",
+      "group": "quick"
+    },
+    {
+      "label": "Email",
+      "icon": "mail",
+      "href": "mailto:riley@example.com",
+      "group": "quick"
+    },
+    {
+      "label": "Book a Meeting",
+      "icon": "calendar",
+      "href": "https://example.com/book",
+      "newTab": true
+    },
+    {
+      "label": "LinkedIn",
+      "icon": "linkedin",
+      "href": "https://example.com/linkedin"
+    },
+    {
+      "label": "example.com",
+      "icon": "globe",
+      "href": "https://example.com",
+      "newTab": true
+    }
+  ],
+  "events": {
+    "summit": {
+      "label": "Example Summit 2027",
+      "note": "Met at Example Summit 2027, Lisbon (Mar 2027).",
+      "from": "2027-03-08",
+      "until": "2027-03-21",
+      "timeZone": "Europe/Lisbon",
+      "default": false,
+      "swapMessage": "Hi Riley, we met at Example Summit 2027. This is ",
+      "emailSubject": "We met at Example Summit 2027",
+      "emailBody": "Hi Riley,\n\nWe met at Example Summit 2027 in Lisbon. This is "
+    }
+  }
+}
